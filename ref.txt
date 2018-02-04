@@ -1,0 +1,6 @@
+https://foursquare.com/developers/app/IS5AI20N3F5CO23ZQ1MLEMDG4IWQL0NGA02LCWTPN3ACJRSP
+https://developers.google.com/maps/documentation/geocoding/get-api-key
+https://realm.io/docs/java/latest/
+https://realm.io/docs/data-model
+https://github.com/googlesamples/easypermissions
+https://developers.google.com/sheets/api/quickstart/android

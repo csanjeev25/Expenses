@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ExpenseAnalyser</string>
+    <string name="btn_search">Search</string>
 </resources>
