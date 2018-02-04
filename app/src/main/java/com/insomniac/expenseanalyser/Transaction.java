@@ -1,15 +1,35 @@
 package com.insomniac.expenseanalyser;
 
 import java.util.Date;
+import java.util.UUID;
+
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by Sanjeev on 2/4/2018.
  */
+@SuppressWarnings("unused")
+public class Transaction extends RealmObject{
 
-public class Transaction {
-
+    @PrimaryKey
+    private String mTransactionID;
     private Date mDate;
-    private float mAmount;
+    private float mAmount = 0.0f;
+    private Place mPlace;
+
+    public Transaction(){
+        mTransactionID = UUID.randomUUID().toString();
+        mDate = new Date();
+    }
+
+    public String getTransactionID() {
+        return mTransactionID;
+    }
+
+    public void setTransactionID(String transactionID) {
+        mTransactionID = transactionID;
+    }
 
     public Date getDate() {
         return mDate;
@@ -27,41 +47,19 @@ public class Transaction {
         mAmount = amount;
     }
 
-    public String getPlace() {
+    public Place getPlace() {
         return mPlace;
     }
 
-    public void setPlace(String place) {
+    public void setPlace(Place place) {
         mPlace = place;
     }
 
-    public String getPlaceId() {
-        return mPlaceId;
-    }
-
-    public void setPlaceId(String placeId) {
-        mPlaceId = placeId;
-    }
-
-    private String mPlace;
-    private String mPlaceId;
-
-    public Transaction() {
+    public Transaction(float amount, Place place){
+        mTransactionID = UUID.randomUUID().toString();
+        mAmount = amount;
+        mPlace = place;
         mDate = new Date();
     }
 
-    public Transaction(float amount){
-        mAmount = amount;
-    }
-
-    public Transaction(float amount,String place){
-        mAmount = amount;
-        mPlace = place;
-    }
-
-    public Transaction(float amount,String place,String placeId){
-        mAmount = amount;
-        mPlace = place;
-        mPlaceId = placeId;
-    }
 }
