@@ -3,6 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:focusableInTouchMode="true"
+    android:descendantFocusability="beforeDescendants"
     android:layout_height="match_parent"
     tools:context="com.insomniac.expenseanalyser.LaunchActivity">
 
@@ -13,48 +15,81 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:orientation="vertical"
-            android:layout_weight="0">
-            
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:orientation="horizontal">
+
             <EditText
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
+                android:id="@+id/textSearch"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:id="@+id/search_edit_view"
-                android:inputType="textPersonName"/>
+                android:inputType="textPersonName" />
 
             <Button
+                android:id="@+id/buttonSearch"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:id="@+id/button_search"
-                android:text="@string/btn_search"
-                android:onClick="onSearchButtonClick"/>
+                android:onClick="onSearchButtonClick"
+                android:text="@string/btn_search" />
         </LinearLayout>
 
-        <ListView
+        <android.support.v4.widget.SwipeRefreshLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="2"
-            android:id="@+id/list_places"
-            android:choiceMode="singleChoice"/>
-        
-        <TextView
+            android:id="@+id/swipeRefresh"
+            android:layout_weight="2">
+
+            <ListView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:choiceMode="singleChoice"
+                android:id="@+id/listPlaces"/>
+        </android.support.v4.widget.SwipeRefreshLayout>
+
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/amount_text_view"
-            android:textAlignment="textEnd"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            tools:text="-100.55"/>
+            android:background="@color/colorPrimary">
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/menu"
+                android:onClick="onMenuButtonPress"
+                android:paddingBottom="4dp"
+                android:paddingEnd="8dp"
+                android:paddingStart="8dp"
+                android:paddingTop="4dp"
+                android:src="@drawable/menu"
+                android:tint="@color/white" />
+
+            <TextView
+                android:id="@+id/textAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_gravity="end"
+                android:paddingBottom="4dp"
+                android:paddingEnd="8dp"
+                android:paddingStart="8dp"
+                android:paddingTop="4dp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                android:textColor="@color/white"
+                tools:ignore="RelativeOverlap"
+                tools:text="-100.55" />
+        </RelativeLayout>
 
         <TableLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:shrinkColumns="*">
 
-            <TableRow
-                style="?android:buttonBarButtonStyle"
-                >
+            <TableRow style="?android:buttonBarButtonStyle">
 
                 <Button
                     style="?android:buttonBarNeutralButtonStyle"
@@ -62,8 +97,7 @@
                     android:layout_height="match_parent"
                     android:onClick="onButtonPress"
                     android:text="7"
-                    tools:ignore="HardcodedText"
-                    />
+                    tools:ignore="HardcodedText" />
 
                 <Button
                     style="?android:buttonBarNeutralButtonStyle"
@@ -89,15 +123,17 @@
                     android:text="00"
                     tools:ignore="HardcodedText" />
 
-                <Button
+                <ImageButton
                     style="?android:buttonBarNeutralButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:contentDescription="@string/backspace"
                     android:onClick="onButtonPress"
+                    android:scaleX="0.8"
+                    android:scaleY="0.8"
+                    android:src="@drawable/backspace"
                     android:tag="del"
-                    android:text="&lt;"
-                    tools:ignore="HardcodedText"
-                    />
+                    android:tint="@color/colorAccent" />
             </TableRow>
 
             <TableRow style="?android:buttonBarButtonStyle">
@@ -134,13 +170,18 @@
                     android:text="0"
                     tools:ignore="HardcodedText" />
 
-                <Button
+                <ImageButton
                     style="?android:buttonBarNeutralButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:contentDescription="+/-"
                     android:onClick="onButtonPress"
+                    android:scaleX="0.8"
+                    android:scaleY="0.8"
+                    android:src="@drawable/exposure"
                     android:tag="neg"
                     android:text="+/-"
+                    android:tint="@color/colorAccent"
                     tools:ignore="HardcodedText" />
             </TableRow>
 
@@ -177,9 +218,9 @@
                     android:layout_span="2"
                     android:onClick="onButtonPress"
                     android:tag="done"
-                    android:text="Done" />
+                    android:text="@string/done"
+                    android:textStyle="bold" />
             </TableRow>
-            </TableLayout>
+        </TableLayout>
     </LinearLayout>
-
 </android.support.constraint.ConstraintLayout>

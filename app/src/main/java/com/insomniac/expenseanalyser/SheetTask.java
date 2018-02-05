@@ -28,29 +28,27 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.realm.Realm;
+import io.realm.RealmResults;
+import io.realm.Sort;
+
 /**
- * Created by DELL on 2/4/2018.
+ * Created by Sanjeev on 2/4/2018.
  */
 
-public class SheetTask extends AsyncTask<Void,Void,SheetTask> {
+public class SheetTask extends AsynHandlerTask<Void,Void> {
 
     private final String TAG = SheetTask.class.getSimpleName();
     private static final String PREF_SHEET_ID = "sheetID";
     private static final String SHEET_TITLE = "ExpenseAnalyser";
     private WeakReference<LaunchActivity> mContextRef;
 
-    private onTaskCompleted mOnTaskCompleted;
+
     private Exception mLastError = null;
     private com.google.api.services.sheets.v4.Sheets mSheets = null;
     private GoogleAccountCredential mGoogleAccountCredential;
 
-    public interface onTaskCompleted{
-        void onTaskCompleted(SheetTask sheetTask);
-    }
 
-    public void setOnTaskCompleted(onTaskCompleted taskCompleted){
-        mOnTaskCompleted = taskCompleted;
-    }
 
     public SheetTask(LaunchActivity launchActivity,GoogleAccountCredential googleAccountCredential){
         mContextRef = new WeakReference<LaunchActivity>(launchActivity);
@@ -68,11 +66,43 @@ public class SheetTask extends AsyncTask<Void,Void,SheetTask> {
 
         try{
             String docID = getOrCreateDocument();
+            transferTransaction(docID);
+
         }catch (IOException e){
             mLastError = e;
             cancel(true);
         }
         return this;
+    }
+
+    private void transferTransaction(String docID){
+        Realm realm = Realm.getDefaultInstance();
+        realm.beginTransaction();
+
+        RealmResults<Transaction> transactions = realm.where(Transaction.class).findAllSorted("mDate", Sort.ASCENDING);
+        List<List<Object>> values = new ArrayList<>();
+        for(Transaction transaction : transactions){
+            List<Object> row = new ArrayList<>();
+            row.add(transaction.getTransactionID());
+            row.add(transaction.getAmount());
+            row.add(android.text.format.DateFormat.format("yyyy-MM-dd hh:mm:ss", transaction.getDate()));
+            row.add(transaction.getPlace().getName());
+            row.add(transaction.getPlace().getAddress());
+            row.add(transaction.getPlace().getCategory());
+            row.add(transaction.getPlace().getFoursquare());
+            row.add(transaction.getPlace().getLatitude());
+            row.add(transaction.getPlace().getLongitude());
+            values.add(row);
+        }
+
+        transactions.deleteAllFromRealm();
+        realm.commitTransaction();
+        try{
+            append(docID,values);
+        }catch (IOException e){
+            
+        }
+
     }
 
     private List<List<Object>> getHeaders(){
@@ -83,7 +113,9 @@ public class SheetTask extends AsyncTask<Void,Void,SheetTask> {
         row.add("Amount");
         row.add("Date");
         row.add("Place");
-        row.add("Foreign ID");
+        row.add("Address");
+        row.add("Category");
+        row.add("FourSquareId");
         row.add("Latitude");
         row.add("Longitude");
         values.add(row);
@@ -155,11 +187,7 @@ public class SheetTask extends AsyncTask<Void,Void,SheetTask> {
         return spreadsheet.getSpreadsheetId();
     }
 
-    @Override
-    protected void onPostExecute(SheetTask sheetTask) {
-        if(mOnTaskCompleted != null)
-            mOnTaskCompleted.onTaskCompleted(sheetTask);
-    }
+
 
     @Override
     protected void onCancelled() {

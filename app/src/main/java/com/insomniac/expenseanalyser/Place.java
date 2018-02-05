@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.Objects;
 
 import io.realm.RealmObject;
+import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 
@@ -33,9 +34,6 @@ public class Place extends RealmObject{
         this.name = name;
     }
 
-    public String getForeign() {
-        return foreign;
-    }
 
     public Double getLatitude() {
         return latitude;
@@ -53,10 +51,6 @@ public class Place extends RealmObject{
         return longitude;
     }
 
-    public void setForeign(String foreign) {
-
-        this.foreign = foreign;
-    }
 
     public Date getLastUsed() {
         return lastUsed;
@@ -66,23 +60,53 @@ public class Place extends RealmObject{
         this.lastUsed = lastUsed;
     }
 
-    public String getInfo() {
-        return info;
-    }
-
-    public void setInfo(String info) {
-        this.info = info;
-    }
 
     @PrimaryKey
     private String id = "";
     private String name = "";
-    private String foreign = "";
     private Double latitude = 0.0;
     private Double longitude = 0.0;
+    private String foursquare = "";
+
+    public boolean isLocal() {
+        return local;
+    }
+
+    public void setLocal(boolean local) {
+        this.local = local;
+    }
+
+    @Ignore
+    private boolean local = false;
+
+    public String getFoursquare() {
+        return foursquare;
+    }
+
+    public void setFoursquare(String foursquare) {
+        this.foursquare = foursquare;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    private String address = "";
+    private String category = "";
     @Index
     private Date lastUsed;
-    private String info = "";
 
     public Place(){
         lastUsed = new Date();
@@ -95,8 +119,8 @@ public class Place extends RealmObject{
 
     private void updateId(){
         String s = name;
-        if(!foreign.isEmpty())
-            s = foreign;
+        if(!foursquare.isEmpty())
+            s = foursquare;
 
         try{
             MessageDigest messageDigest = java.security.MessageDigest.getInstance("MD5");

@@ -4,3 +4,6 @@ https://realm.io/docs/java/latest/
 https://realm.io/docs/data-model
 https://github.com/googlesamples/easypermissions
 https://developers.google.com/sheets/api/quickstart/android
+https://developers.google.com/api-client-library/java/google-http-java-client/json
+https://www.tutorialspoint.com/jackson/index.htm
+https://medium.com/@ali.muzaffar/understanding-vectordrawable-pathdata-commands-in-android-d56a6054610e

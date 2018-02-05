@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,6 +34,8 @@ import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import io.realm.Sort;
+
+import static java.lang.Math.round;
 
 /**
  * Created by Sanjeev on 2/3/2018.
@@ -73,6 +76,16 @@ public class PlacesAdapter extends ArrayAdapter {
 
         loadLocalPlaces(location);
 
+        LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
+        final FourSquareTask fourSquareTask = new FourSquareTask(latLng,filter);
+        fourSquareTask.setListener(new AsynHandlerTask.OnTaskCompleted() {
+            @Override
+            public void onTaskCompleted(AsynHandlerTask asynHandlerTask) {
+                addAll(((FourSquareTask) fourSquareTask).getPlaces());
+            }
+        });
+        fourSquareTask.execute();
+
         final PlaceDetectionClient placeDetectionClient = Places.getPlaceDetectionClient(mContext, null);
 
         if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -87,8 +100,8 @@ public class PlacesAdapter extends ArrayAdapter {
                     Place place = new Place();
                     place.setName(placeLikelihood.getPlace().getName().toString());
                     place.setLatLng(placeLikelihood.getPlace().getLatLng());
-                    place.setInfo(placeLikelihood.getPlace().getAddress().toString());
-                    place.setForeign(placeLikelihood.getPlace().getId());
+                    place.setAddress(placeLikelihood.getPlace().getAddress().toString());
+                    place.setFoursquare(placeLikelihood.getPlace().getId());
 
                     if(mPlaceArrayList.contains(place)){
                         Log.d("me","place already there");
@@ -102,10 +115,7 @@ public class PlacesAdapter extends ArrayAdapter {
 
     public void loadLocalPlaces(Location location){
         LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
-        int radius = 500;
-        if(location.hasAccuracy()){
-            radius = 250;
-        }
+        int radius = round(location.getAccuracy() * 15);
         LatLngBounds latLngBounds = toBounds(latLng,radius);
 
         Realm realm = Realm.getDefaultInstance();
@@ -114,8 +124,10 @@ public class PlacesAdapter extends ArrayAdapter {
         placeRealmQuery.between("lon",latLngBounds.southwest.longitude,latLngBounds.northeast.longitude);
 
         RealmResults<Place> placeRealmResults = placeRealmQuery.findAllSorted("lastused", Sort.DESCENDING);
-        for(Place result : placeRealmResults)
+        for(Place result : placeRealmResults) {
+            result.setLocal(true);
             add(result);
+        }
     }
 
     @NonNull
@@ -130,10 +142,21 @@ public class PlacesAdapter extends ArrayAdapter {
         textView.setText(item.getName());
 
         TextView textView1 = rowView.findViewById(R.id.radio_description_text_view);
-        textView1.setText(item.getInfo());
+
+        String info = item.getAddress()
+                .concat("[")
+                .concat(item.getCategory())
+                .concat("]");
+        textView1.setText(info);
 
         RadioButton radioButton = rowView.findViewById(R.id.select_radio_button);
         radioButton.setChecked(mSelected == position);
+
+        ImageView star = (ImageView) rowView.findViewById(R.id.imageStar);
+        if(item.isLocal())
+            star.setVisibility(View.VISIBLE);
+        else
+            star.setVisibility(View.GONE);
 
         return rowView;
     }

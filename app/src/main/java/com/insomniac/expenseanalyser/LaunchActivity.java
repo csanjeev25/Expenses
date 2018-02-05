@@ -10,6 +10,7 @@ import android.location.Location;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -99,6 +100,15 @@ public class LaunchActivity extends AppCompatActivity implements GoogleApiClient
         }
 
         mGoogleAccountCredential = GoogleAccountCredential.usingOAuth2(this, Arrays.asList(SCOPES)).setBackOff(new ExponentialBackOff());
+
+        final SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipeRefresh);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loactionUpdate();
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        });
     }
 
     public void onButtonPress(View v){
@@ -282,6 +292,10 @@ public class LaunchActivity extends AppCompatActivity implements GoogleApiClient
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         EasyPermissions.onRequestPermissionsResult(requestCode,permissions,grantResults,this);
+    }
+
+    public void onMenuButtonPress(View view) {
+        startActivity(new Intent(this,DetailActivity.class));
     }
 
 }

@@ -1,4 +1,27 @@
 <resources>
-    <string name="app_name">ExpenseAnalyser</string>
+    <string name="app_name">TheCashster</string>
     <string name="btn_search">Search</string>
+    <string name="menu">Menu</string>
+    <string name="select_place">Select Place</string>
+    <string name="menu_about">About</string>
+    <string name="backspace">backspace</string>
+    <string name="done">Done</string>
+    <string name="about">About</string>
+    <string name="saved_result">saved result</string>
+    <string name="about_version">Version:</string>
+    <string name="about_docid">Google Docs ID:</string>
+    <string name="about_places">Local Places:</string>
+    <string name="about_location">Location:</string>
+    <string name="reallydel">Are you sure you want to delete this place?</string>
+    <string name="delete_title">Delete %1$s?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="perm_location">Location access is needed to find nearby places</string>
+    <string name="perm_contacts">The contacts permission is needed to authenticate your spreadsheet account</string>
+    <string name="err_noamount">No amount set</string>
+    <string name="err_noplace">No place selected</string>
+    <string name="err_firstplace">First place selected, click done again to confirm</string>
+    <string name="err_toomuch">Sorry, that\'s just too much</string>
+    <string name="err_nolocation">Sorry, no location available</string>
+    <string name="about_tx">Pending transactions</string>
 </resources>
