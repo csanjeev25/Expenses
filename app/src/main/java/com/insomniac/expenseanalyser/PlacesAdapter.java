@@ -30,6 +30,7 @@ import com.google.maps.android.SphericalUtil;
 
 import java.util.ArrayList;
 
+import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
@@ -74,7 +75,9 @@ public class PlacesAdapter extends ArrayAdapter {
             return;
         }
 
-        loadLocalPlaces(location);
+        loadLocalPlaces(location,filter);
+        addCustomPlace(location,filter);
+        locationFourSquareplaces(location,filter);
 
         LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
         final FourSquareTask fourSquareTask = new FourSquareTask(latLng,filter);
@@ -86,7 +89,7 @@ public class PlacesAdapter extends ArrayAdapter {
         });
         fourSquareTask.execute();
 
-        final PlaceDetectionClient placeDetectionClient = Places.getPlaceDetectionClient(mContext, null);
+        /*final PlaceDetectionClient placeDetectionClient = Places.getPlaceDetectionClient(mContext, null);
 
         if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -111,9 +114,29 @@ public class PlacesAdapter extends ArrayAdapter {
                 likelihoods.release();
             }
         });
+        */
     }
 
-    public void loadLocalPlaces(Location location){
+    private void locationFourSquareplaces(final Location location,final String filter){
+        LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
+        FourSquareTask fourSquareTask = new FourSquareTask(latLng,filter);
+        fourSquareTask.execute();
+    }
+
+    private void addCustomPlace(Location location,String filter){
+        if(filter.length() == 0)
+            return;
+
+        Place place = new Place();
+        place.setCategory("Custom");
+        place.setLatitude(location.getLatitude());
+        place.setLongitude(location.getLongitude());
+        place.setName(filter);
+        place.setInfo("Create a new Custom Place");
+        add(place);
+    }
+
+    public void loadLocalPlaces(Location location,String filter){
         LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
         int radius = round(location.getAccuracy() * 15);
         LatLngBounds latLngBounds = toBounds(latLng,radius);
@@ -123,9 +146,14 @@ public class PlacesAdapter extends ArrayAdapter {
         placeRealmQuery.between("lat",latLngBounds.southwest.latitude,latLngBounds.northeast.latitude);
         placeRealmQuery.between("lon",latLngBounds.southwest.longitude,latLngBounds.northeast.longitude);
 
+        if(filter.length() > 0){
+            placeRealmQuery.contains("name",filter, Case.INSENSITIVE);
+        }
+
         RealmResults<Place> placeRealmResults = placeRealmQuery.findAllSorted("lastused", Sort.DESCENDING);
         for(Place result : placeRealmResults) {
             result.setLocal(true);
+            result.setDistanceFrom(latLng);
             add(result);
         }
     }
@@ -146,7 +174,10 @@ public class PlacesAdapter extends ArrayAdapter {
         String info = item.getAddress()
                 .concat("[")
                 .concat(item.getCategory())
-                .concat("]");
+                .concat("]")
+                .concat(" ")
+                .concat(String.valueOf(item.getDistance()))
+                .concat("m");
         textView1.setText(info);
 
         RadioButton radioButton = rowView.findViewById(R.id.select_radio_button);

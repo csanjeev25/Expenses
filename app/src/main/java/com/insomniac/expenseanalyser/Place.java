@@ -66,9 +66,45 @@ public class Place extends RealmObject{
     private String name = "";
     private Double latitude = 0.0;
     private Double longitude = 0.0;
+    @Ignore
+    private String info = "";
+
+    public String getInfo() {
+        return info;
+    }
+
+    public void setInfo(String info) {
+        this.info = info;
+    }
+
     private String foursquare = "";
 
+    public int getDistance() {
+        return distance;
+    }
+
+    public void setDistanceFrom(LatLng latLng){
+        LatLng self = new LatLng(latitude,longitude);
+        distance = calculateDistance(self,latLng);
+    }
+
+    public int calculateDistance(LatLng self,LatLng latLng){
+        final int earthRadius = 6371;
+
+        float dLat = (float) Math.toRadians(latLng.latitude - self.latitude);
+        float fLong = (float) Math.toRadians(latLng.longitude - self.longitude);
+        float a = (float) (Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(Math.toRadians(self.latitude)) * Math.cos(Math.toRadians(latLng.latitude)) * Math.sin(fLong / 2) * Math.sin(fLong / 2));
+        float c = (float) (2 * Math.atan2(Math.sqrt(a),Math.sqrt(1 - a)));
+
+        return Math.round(earthRadius * c * 1000);
+    }
+
+    public void setDistance(int distance) {
+        this.distance = distance;
+    }
+
     public boolean isLocal() {
+
         return local;
     }
 
@@ -78,6 +114,9 @@ public class Place extends RealmObject{
 
     @Ignore
     private boolean local = false;
+
+    @Ignore
+    private int distance = 0;
 
     public String getFoursquare() {
         return foursquare;

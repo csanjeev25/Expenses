@@ -13,6 +13,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -62,10 +63,16 @@ public class LaunchActivity extends AppCompatActivity implements GoogleApiClient
     GoogleAccountCredential mGoogleAccountCredential;
 
     @BindView(R.id.search_edit_view)
-    EditText mSearchEditText;
+    CustomEditText mSearchEditText;
 
     @BindView(R.id.button_search)
     Button mSearchButton;
+
+    @BindView(R.id.activity_launch)
+    View vLaunchActivity;
+
+    @BindView(R.id.tablet_layout)
+    View vTabletLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,18 +83,6 @@ public class LaunchActivity extends AppCompatActivity implements GoogleApiClient
         final ListView mPlacesListView = (ListView) findViewById(R.id.list_places);
         mPlacesAdapter = new PlacesAdapter(this,new ArrayList<Place>());
         mPlacesListView.setAdapter(mPlacesAdapter);
-        mPlacesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                mPlacesAdapter.selectItem(i);
-
-                //bande ko feedback milna chaiye
-                Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                if(vibrator != null)
-                    vibrator.vibrate(20);
-                closeKeyboard();
-            }
-        });
 
         updateAmountView();
 
@@ -107,6 +102,24 @@ public class LaunchActivity extends AppCompatActivity implements GoogleApiClient
             public void onRefresh() {
                 loactionUpdate();
                 swipeRefreshLayout.setRefreshing(false);
+            }
+        });
+
+        mSearchEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                if(b)
+                    vTabletLayout.setVisibility(View.GONE);
+                else
+                    vTabletLayout.setVisibility(View.VISIBLE);
+            }
+        });
+
+        mSearchEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                onSearchButtonClick(textView);
+                return true;
             }
         });
     }
@@ -259,6 +272,7 @@ public class LaunchActivity extends AppCompatActivity implements GoogleApiClient
         InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         if(inputMethodManager != null)
             inputMethodManager.hideSoftInputFromWindow(mSearchEditText.getWindowToken(),0);
+        vLaunchActivity.requestFocus();
     }
 
     @Override

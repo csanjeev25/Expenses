@@ -26,6 +26,7 @@ public class FourSquareTask extends AsynHandlerTask<Void,Void>{
 
     static final String Client_ID = "IS5AI20N3F5CO23ZQ1MLEMDG4IWQL0NGA02LCWTPN3ACJRSP" ;
     static final String Client_Secret = "R0CLHEBFRMVOAEGRAGP3XPRMDMBF3TZACKEYP2ETSJDNHGMM";
+    private LatLng mLocation;
 
     private Exception mLastError;
     private URL mURL;
@@ -109,6 +110,7 @@ public class FourSquareTask extends AsynHandlerTask<Void,Void>{
             }
             place.setLatitude(loc.getDouble("lat"));
             place.setLongitude(loc.getDouble("lng"));
+            place.setDistanceFrom(mLocation);
 
             mPlaces.add(place);
         }
