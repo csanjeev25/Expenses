@@ -40,6 +40,7 @@ public class DetailActivity extends AppCompatActivity {
         textView.setText(BuildConfig.VERSION_NAME);
 
         textView = findViewById(R.id.textAboutDocId);
+        
         textView.setText(PreferenceManager.getDefaultSharedPreferences(this).getString(SheetTask.PREF_SHEET_ID, "<none>"));
 
         textView = findViewById(R.id.textAboutNumberPlaces);
