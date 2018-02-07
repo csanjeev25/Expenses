@@ -39,7 +39,7 @@ import io.realm.Sort;
 public class SheetTask extends AsynHandlerTask<Void,Void> {
 
     private final String TAG = SheetTask.class.getSimpleName();
-    private static final String PREF_SHEET_ID = "sheetID";
+    public static final String PREF_SHEET_ID = "sheetID";
     private static final String SHEET_TITLE = "ExpenseAnalyser";
     private WeakReference<LaunchActivity> mContextRef;
 
@@ -103,6 +103,7 @@ public class SheetTask extends AsynHandlerTask<Void,Void> {
             
         }
 
+        realm.close();
     }
 
     private List<List<Object>> getHeaders(){

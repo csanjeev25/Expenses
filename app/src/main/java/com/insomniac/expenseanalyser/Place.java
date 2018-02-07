@@ -108,6 +108,10 @@ public class Place extends RealmObject{
         return local;
     }
 
+    public void updateLastUsed(){
+        lastUsed = new Date();
+    }
+
     public void setLocal(boolean local) {
         this.local = local;
     }

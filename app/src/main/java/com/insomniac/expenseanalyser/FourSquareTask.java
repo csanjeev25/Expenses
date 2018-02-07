@@ -27,6 +27,7 @@ public class FourSquareTask extends AsynHandlerTask<Void,Void>{
     static final String Client_ID = "IS5AI20N3F5CO23ZQ1MLEMDG4IWQL0NGA02LCWTPN3ACJRSP" ;
     static final String Client_Secret = "R0CLHEBFRMVOAEGRAGP3XPRMDMBF3TZACKEYP2ETSJDNHGMM";
     private LatLng mLocation;
+    private final String TAG = this.getClass().getSimpleName();
 
     private Exception mLastError;
     private URL mURL;

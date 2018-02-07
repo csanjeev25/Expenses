@@ -29,6 +29,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.maps.android.SphericalUtil;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import io.realm.Case;
 import io.realm.Realm;
@@ -136,7 +138,7 @@ public class PlacesAdapter extends ArrayAdapter {
         add(place);
     }
 
-    public void loadLocalPlaces(Location location,String filter){
+    private void loadLocalPlaces(Location location,String filter){
         LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
         int radius = round(location.getAccuracy() * 15);
         LatLngBounds latLngBounds = toBounds(latLng,radius);
@@ -150,18 +152,24 @@ public class PlacesAdapter extends ArrayAdapter {
             placeRealmQuery.contains("name",filter, Case.INSENSITIVE);
         }
 
-        RealmResults<Place> placeRealmResults = placeRealmQuery.findAllSorted("lastused", Sort.DESCENDING);
+        List<Place> placeRealmResults = realm.copyFromRealm(placeRealmQuery.findAllSorted("lastused", Sort.DESCENDING));
         for(Place result : placeRealmResults) {
             result.setLocal(true);
             result.setDistanceFrom(latLng);
             add(result);
         }
+
+        realm.close();
     }
 
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        View rowView = LayoutInflater.from(mContext).inflate(R.layout.places_row,parent,false);
+        View rowView = convertView;
+        if(rowView != null) {
+            LayoutInflater layoutInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            rowView = layoutInflater.inflate(R.layout.places_row, parent, false);
+        }
 
         Place item = mPlaceArrayList.get(position);
         assert item != null;
@@ -205,5 +213,26 @@ public class PlacesAdapter extends ArrayAdapter {
         LatLng northEastCorner = SphericalUtil.computeOffset(centre,distanceFromCentreToCorner,45.0);
 
         return new LatLngBounds(southWeatCorner,northEastCorner);
+    }
+
+    @Override
+    public void remove(@Nullable Object object) {
+        super.remove(object);
+        mSelected = -1;
+    }
+
+    @Override
+    public void addAll(@NonNull Collection collection) {
+        for(Object place : collection){
+            add(place);
+        }
+    }
+
+    @Override
+    public void add(@Nullable Object object) {
+        if(object == null)
+            return;
+        if(mPlaceArrayList.contains((Place)object))
+            super.add(object);
     }
 }

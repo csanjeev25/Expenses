@@ -2,15 +2,23 @@ package com.insomniac.expenseanalyser;
 
 import android.Manifest;
 import android.accounts.AccountManager;
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
+import android.animation.RectEvaluator;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -62,10 +70,10 @@ public class LaunchActivity extends AppCompatActivity implements GoogleApiClient
     private Location mLastLocation;
     GoogleAccountCredential mGoogleAccountCredential;
 
-    @BindView(R.id.search_edit_view)
+    @BindView(R.id.textSearch)
     CustomEditText mSearchEditText;
 
-    @BindView(R.id.button_search)
+    @BindView(R.id.buttonSearch)
     Button mSearchButton;
 
     @BindView(R.id.activity_launch)
@@ -74,15 +82,21 @@ public class LaunchActivity extends AppCompatActivity implements GoogleApiClient
     @BindView(R.id.tablet_layout)
     View vTabletLayout;
 
+    @BindView(R.id.listPlaces)
+    ListView mPlacesListView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch);
         ButterKnife.bind(this);
 
-        final ListView mPlacesListView = (ListView) findViewById(R.id.list_places);
         mPlacesAdapter = new PlacesAdapter(this,new ArrayList<Place>());
         mPlacesListView.setAdapter(mPlacesAdapter);
+
+        ListViewHandler listViewHandler = new ListViewHandler();
+        mPlacesListView.setOnItemClickListener(listViewHandler);
+        mPlacesListView.setOnItemLongClickListener(listViewHandler);
 
         updateAmountView();
 
@@ -122,6 +136,11 @@ public class LaunchActivity extends AppCompatActivity implements GoogleApiClient
                 return true;
             }
         });
+
+        SearchTextHandler searchTextHandler = new SearchTextHandler();
+        mSearchEditText.setOnFocusChangeListener(searchTextHandler);
+        mSearchEditText.setClearTextListener(searchTextHandler);
+        mSearchEditText.setOnEditorActionListener(searchTextHandler);
     }
 
     public void onButtonPress(View v){
@@ -168,18 +187,65 @@ public class LaunchActivity extends AppCompatActivity implements GoogleApiClient
                 return;
             }
 
+            showAnimation();
+
+            place.updateLastUsed();
+
             Transaction transaction = new Transaction(getAmount(),place);
             Realm realm = Realm.getDefaultInstance();
             realm.beginTransaction();
             realm.copyToRealmOrUpdate(transaction);
             realm.commitTransaction();
+            realm.close();
 
             startSheetsSync();
+            place.setLocal(true);
             mPlacesAdapter.selectItem(-1);
 
             mAmount = "";
             updateAmountView();
 
+        }
+
+        private void showAnimation(){
+            final Drawable drawable = getResources().getDrawable(R.drawable.check);
+
+            int cx = mPlacesListView.getMeasuredWidth() / 2;
+            int cy = mPlacesListView.getMeasuredHeight() / 2;
+
+            drawable.setBounds(cx,cy,cx,cy);
+            drawable.setAlpha(255);
+            drawable.setTint(getResources().getColor(R.color.colorPrimaryLight));
+
+            mPlacesListView.getOverlay().add(drawable);
+
+            final int scale = 3;
+            Rect rect = new Rect(cx + (cx * -1 * scale),cy + (cx * -1 * scale),cx + (cx * scale),cy + (cx * scale));
+
+            ObjectAnimator objectAnimator = ObjectAnimator.ofPropertyValuesHolder(drawable, PropertyValuesHolder.ofObject("bounds",new RectEvaluator(),rect),PropertyValuesHolder.ofInt("alpha",0));
+            objectAnimator.addListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animator) {
+
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animator) {
+                    mPlacesListView.getOverlay().remove(drawable);
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animator) {
+
+                }
+
+                @Override
+                public void onAnimationRepeat(Animator animator) {
+
+                }
+            });
+            objectAnimator.setDuration(1000);
+            objectAnimator.start();
         }
 
         private void startSheetsSync(){
@@ -237,7 +303,7 @@ public class LaunchActivity extends AppCompatActivity implements GoogleApiClient
 
     public void updateAmountView(){
             float amount = getAmount();
-            TextView view = findViewById(R.id.amount_text_view);
+            TextView view = findViewById(R.id.textAmount);
             String value = String.format(Locale.US,"01.2f",amount);
             if(amount == 0.0f && mNeg < 0)
                 value = "-".concat(value);
@@ -246,7 +312,7 @@ public class LaunchActivity extends AppCompatActivity implements GoogleApiClient
 
     public void updatedPlaceView(){
         mPlacesAdapter.clear();
-        EditText tv = findViewById(R.id.search_edit_view);
+        EditText tv = findViewById(R.id.textSearch);
         mPlacesAdapter.findNearbyPlaces(mLastLocation,tv.getText().toString());
     }
 
@@ -309,7 +375,80 @@ public class LaunchActivity extends AppCompatActivity implements GoogleApiClient
     }
 
     public void onMenuButtonPress(View view) {
-        startActivity(new Intent(this,DetailActivity.class));
+        Intent intent = new Intent(this,DetailActivity.class);
+        intent.putExtra("location",mLastLocation);
+        startActivity(intent);
+    }
+
+    private class ListViewHandler implements AdapterView.OnItemClickListener,AdapterView.OnItemLongClickListener{
+
+        @Override
+        public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+            final Place place = (Place)mPlacesAdapter.getItem(i);
+            if(place.isLocal())
+                return false;
+
+            AlertDialog.Builder alert = new AlertDialog.Builder(LaunchActivity.this);
+            alert.setTitle("Delete " + place.getName());
+            alert.setMessage("Are you sure u wanna delete this place");
+            alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    Realm realm = Realm.getDefaultInstance();
+                    try{
+                        mPlacesAdapter.remove(place);
+                        realm.beginTransaction();
+                        realm.where(Place.class)
+                                .equalTo("id",place.getId())
+                                .findAll()
+                                .deleteAllFromRealm();
+                        realm.commitTransaction();
+                    }catch (IllegalStateException e){
+                        Toast.makeText(LaunchActivity.this,"Something went wrong when deleting the ite",Toast.LENGTH_SHORT).show();
+                    }
+                    realm.close();
+                }
+            });
+            alert.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.dismiss();
+                }
+            });
+            alert.show();
+            return true;
+        }
+
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+            mPlacesAdapter.selectItem(i);
+            Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+            if(vibrator != null)
+                vibrator.vibrate(20);
+            closeKeyboard();
+        }
+    }
+
+    private class SearchTextHandler implements View.OnFocusChangeListener,TextView.OnEditorActionListener,CustomEditText.ClearTextListener{
+        @Override
+        public void onFocusChange(View view, boolean b) {
+            if(b)
+                vTabletLayout.setVisibility(View.GONE);
+            else
+                vTabletLayout.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+            onSearchButtonClick(textView);
+            return true;
+        }
+
+        @Override
+        public void onTextCleared(CustomEditText customEditText) {
+            onSearchButtonClick(customEditText);
+        }
     }
 
 }
