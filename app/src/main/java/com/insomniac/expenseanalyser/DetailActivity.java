@@ -30,6 +30,7 @@ public class DetailActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
+        //Load WebView from assets
         WebView webView = (WebView) findViewById(R.id.webview);
         webView.loadUrl("file:///about.html");
 
